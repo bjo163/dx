@@ -78,7 +78,7 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 
 ## DX-010 — Operations readiness
 - Add structured logs, metrics, backups, restore verification, retention and upgrade docs.
-- Add security headers, dependency scanning and threat-model review.
+- Extend the baseline header policy after threat-model review; add dependency scanning and security review.
 - Acceptance: documented restore drill and security checklist pass.
 
 ## DX-011 — VPS deployment reliability

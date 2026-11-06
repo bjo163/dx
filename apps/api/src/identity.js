@@ -74,6 +74,7 @@ export async function getSession(pool, request) {
 }
 
 export async function requireAuth(request, reply) {
+  if (!request.server.pg) return reply.code(503).send({ error: "Database is not configured." });
   const session = await getSession(request.server.pg, request);
   if (!session) return reply.code(401).send({ error: "Authentication required." });
   request.auth = session;

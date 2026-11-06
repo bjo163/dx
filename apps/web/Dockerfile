@@ -9,4 +9,5 @@ RUN pnpm --filter @dx/web build
 WORKDIR /app/apps/web
 ENV NODE_ENV=production PORT=3000
 EXPOSE 3000
-CMD ["../../node_modules/.bin/next","start","-H","0.0.0.0"]
+# Run the workspace script so pnpm resolves the package-local Next.js binary.
+CMD ["pnpm","start"]

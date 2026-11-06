@@ -75,7 +75,7 @@ export function AccountControl({ email, organization }) {
     setBusy(true);
     try {
       const csrf = document.cookie.split("; ").find(item => item.startsWith("dx_csrf="))?.split("=").slice(1).join("=") || "";
-      await fetch("/api/auth/logout", { method: "POST", headers: { "x-csrf-token": decodeURIComponent(csrf) } });
+      await fetch("/api/auth/logout", { method: "POST", headers: { "content-type": "application/json", "x-csrf-token": decodeURIComponent(csrf) }, body: "{}" });
       router.refresh();
     } finally { setBusy(false); }
   }

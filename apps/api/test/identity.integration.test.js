@@ -106,7 +106,7 @@ test("identity onboarding, sessions, CSRF and organization isolation", { skip: !
       ["Second Workspace", "second-workspace"]
     );
     await pool.query(
-      "INSERT INTO organization_memberships (organization_id, user_id, role) VALUES ($1, $2, 'viewer')",
+      "INSERT INTO organization_memberships (organization_id, user_id, role) VALUES ($1, $2, 'developer')",
       [secondOrg.rows[0].id, secondUser.rows[0].id]
     );
 
@@ -130,13 +130,45 @@ test("identity onboarding, sessions, CSRF and organization isolation", { skip: !
     const secondCookies = cookiesFrom(secondLogin);
     const secondCookieHeader = cookieHeader(secondCookies);
     const secondCsrf = cookieValue(secondCookies, "dx_csrf");
+    const secondProjectsBeforeWrite = await app.inject({
+      method: "GET", url: "/api/projects", headers: { cookie: secondCookieHeader }
+    });
+    assert.deepEqual(secondProjectsBeforeWrite.json().data, []);
+    const secondOrgProject = await app.inject({
+      method: "POST", url: "/api/projects",
+      headers: { cookie: secondCookieHeader, "x-csrf-token": secondCsrf },
+      payload: { name: "Second Organization Project", slug: "owner-project" }
+    });
+    assert.equal(secondOrgProject.statusCode, 201);
     const secondProjects = await app.inject({
       method: "GET", url: "/api/projects", headers: { cookie: secondCookieHeader }
     });
-    assert.deepEqual(secondProjects.json().data, []);
+    assert.equal(secondProjects.json().data.length, 1);
+    assert.equal(secondProjects.json().data[0].name, "Second Organization Project");
+    const ownerProjects = await app.inject({
+      method: "GET", url: "/api/projects", headers: { cookie: ownerCookieHeader }
+    });
+    assert.equal(ownerProjects.json().data.length, 1);
+    assert.equal(ownerProjects.json().data[0].name, "Owner Project");
+
+    const viewerHash = await hashPassword("viewer-account-password-123");
+    const viewer = await pool.query(
+      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id",
+      ["readonly@example.test", viewerHash]
+    );
+    await pool.query(
+      "INSERT INTO organization_memberships (organization_id, user_id, role) VALUES ($1, $2, 'viewer')",
+      [secondOrg.rows[0].id, viewer.rows[0].id]
+    );
+    const viewerLogin = await app.inject({
+      method: "POST", url: "/api/auth/login",
+      payload: { email: "readonly@example.test", password: "viewer-account-password-123" }
+    });
+    assert.equal(viewerLogin.statusCode, 200);
+    const viewerCookies = cookiesFrom(viewerLogin);
     const viewerWrite = await app.inject({
       method: "POST", url: "/api/projects",
-      headers: { cookie: secondCookieHeader, "x-csrf-token": secondCsrf },
+      headers: { cookie: cookieHeader(viewerCookies), "x-csrf-token": cookieValue(viewerCookies, "dx_csrf") },
       payload: { name: "Forbidden Project", slug: "forbidden-project" }
     });
     assert.equal(viewerWrite.statusCode, 403);

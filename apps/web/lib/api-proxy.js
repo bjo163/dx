@@ -1,6 +1,9 @@
 const apiBase = () => process.env.API_INTERNAL_URL || "http://localhost:4000";
 
 export async function proxyApi(request, path, method = "GET") {
+  if (method !== "GET" && new URL(request.url).origin !== request.headers.get("origin")) {
+    return Response.json({ error: "Cross-origin request rejected." }, { status: 403 });
+  }
   const headers = {};
   const cookie = request.headers.get("cookie");
   const csrf = request.headers.get("x-csrf-token");

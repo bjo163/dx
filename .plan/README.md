@@ -26,29 +26,29 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - Acceptance: migration is idempotent, does not delete existing project data, and can be applied to an existing database without changing current project API behavior.
 
 ### DX-004B — Authentication primitives
-- Add password hashing using a maintained Argon2id implementation and constant-time verification.
-- Add cryptographically random opaque session and CSRF tokens; persist only token hashes.
-- Add login/logout/current-session endpoints, expiry, revocation and disabled-user handling.
-- Set HttpOnly cookies; require Secure in production and explicit SameSite policy.
-- Acceptance: tests cover valid/invalid login, generic credential errors, expiry, logout/revocation and disabled accounts.
+- [x] Add Argon2id password hashing and verification.
+- [x] Add cryptographically random opaque session and CSRF tokens; persist only token hashes.
+- [x] Add login/logout/current-session endpoints, expiry, revocation and disabled-user handling.
+- [x] Set HttpOnly cookies; require Secure in production and SameSite=Lax.
+- [ ] Add PostgreSQL-backed integration tests for valid/invalid login, expiry, logout/revocation and disabled accounts.
 
 ### DX-004C — First-owner bootstrap
-- Provide a one-time, race-safe owner bootstrap that cannot be invoked after an owner exists.
-- Never ship a default password or public unauthenticated account-creation endpoint.
-- Acceptance: concurrent bootstrap attempts produce exactly one owner; repeat attempts are denied.
+- [x] Provide a one-time, race-safe owner bootstrap protected by server-side DX_BOOTSTRAP_TOKEN and PostgreSQL advisory lock.
+- [x] Never ship a default password or public unauthenticated account-creation endpoint.
+- [ ] Add PostgreSQL integration tests proving concurrent bootstrap attempts produce exactly one owner and repeat attempts are denied.
 
 ### DX-004D — Organization-scoped authorization
-- Add organization_id to projects with a safe backfill strategy for existing rows.
-- Resolve organization membership and role server-side; do not trust client-supplied organization or role.
-- Require membership for project list/create and scope every query by organization_id.
-- Add role checks for mutations and tests for cross-organization denial.
-- Acceptance: a user cannot read or mutate another organization's projects, even when guessing UUIDs/slugs.
+- [x] Add organization_id to projects without assigning legacy unowned projects to an arbitrary tenant.
+- [x] Resolve organization membership and role server-side; do not trust client-supplied organization or role.
+- [x] Require membership for project list/create and scope every query by organization_id.
+- [x] Enforce owner/admin/developer roles for project creation.
+- [ ] Add PostgreSQL integration tests proving cross-organization reads and writes are denied.
 
 ### DX-004E — CSRF, rate limits and security headers
-- Protect cookie-authenticated mutations with CSRF validation and origin checks.
-- Rate-limit login and bootstrap attempts with bounded, privacy-safe keys.
-- Add security headers and production CORS allowlist configuration.
-- Acceptance: automated tests prove unsafe cross-origin mutations and abusive login bursts are rejected.
+- [x] Protect cookie-authenticated project creation and logout with CSRF cookie/header/hash validation.
+- [x] Rate-limit login and bootstrap attempts with bounded IP-based keys.
+- [ ] Add explicit trusted-origin validation, security headers and production CORS allowlist configuration.
+- [ ] Add automated tests proving unsafe cross-origin mutations and abusive login bursts are rejected.
 
 ## DX-005 — Audit events
 - Persist actor, organization, action, resource, timestamp and safe metadata for every mutation.
@@ -99,7 +99,10 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - [x] Project payload validation extracted into a reusable module and covered by Node tests.
 - [x] GitHub Actions CI now runs workspace lint, API tests, workspace build and Compose validation.
 - [x] VPS deployment guide, safe direct-IP preview procedure and Compose healthchecks.
-- [x] DX-004A identity persistence schema added as an additive PostgreSQL migration; fresh-install mounting and existing-volume upgrade instructions documented.
-- [ ] DX-004B–004E authentication, owner bootstrap, organization-scoped authorization, CSRF, rate limits and security headers remain incomplete.
+- [x] DX-004A identity persistence schema added as additive PostgreSQL migrations; fresh-install mounting and existing-volume upgrade instructions documented.
+- [x] DX-004B core Argon2id login/logout/session primitives implemented; PostgreSQL integration coverage remains pending.
+- [x] DX-004C one-time first-owner onboarding UI and race-safe server bootstrap implemented; concurrency tests remain pending.
+- [x] DX-004D project list/create now require authenticated organization membership and are tenant-scoped; cross-tenant integration tests remain pending.
+- [ ] DX-004E explicit origin checks, security headers and automated CSRF/rate-limit tests remain pending.
 - [ ] CI runner completion and Docker image build/smoke verification remain pending.
 - [ ] Git provider integration remains blocked on the full identity and authorization baseline.

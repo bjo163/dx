@@ -21,6 +21,9 @@ docker compose up --build
 
 Open http://localhost:3000 (cockpit), http://localhost:4000/health (API health), and http://localhost:4000/ready (database readiness).
 
+## VPS deployment
+Follow [the VPS deployment and troubleshooting guide](docs/deployment-vps.md). Compose binds published ports to loopback by default. Direct-IP access requires an explicit temporary `WEB_BIND=0.0.0.0` override and firewall restriction. Do not expose the unauthenticated bootstrap publicly.
+
 ## Local development
 Node.js 22+ and pnpm 9+:
 

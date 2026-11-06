@@ -38,6 +38,7 @@ services:
       DATABASE_URL: postgres://dx:${POSTGRES_PASSWORD:-dx_local_only}@postgres:5432/dx
       REDIS_URL: redis://redis:6379
       DX_BOOTSTRAP_TOKEN: ${DX_BOOTSTRAP_TOKEN:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
     ports:
       - "${API_BIND:-127.0.0.1}:${API_PORT:-4000}:4000"
     depends_on:

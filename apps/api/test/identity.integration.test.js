@@ -35,9 +35,16 @@ test("identity onboarding, sessions, CSRF and organization isolation", { skip: !
   try {
     await pool.query("DROP TABLE IF EXISTS projects, user_sessions, organization_memberships, organizations, users CASCADE");
     await pool.query(await readFile(new URL("../../../infra/postgres/init.sql", import.meta.url), "utf8"));
-    await pool.query(await readFile(new URL("../../../infra/postgres/migrations/002_identity.sql", import.meta.url), "utf8"));
-    await pool.query(await readFile(new URL("../../../infra/postgres/migrations/003_project_tenant_scope.sql", import.meta.url), "utf8"));
-    await pool.query(await readFile(new URL("../../../infra/postgres/migrations/004_project_org_slug_unique.sql", import.meta.url), "utf8"));
+    const identityMigration = await readFile(new URL("../../../infra/postgres/migrations/002_identity.sql", import.meta.url), "utf8");
+    const tenantMigration = await readFile(new URL("../../../infra/postgres/migrations/003_project_tenant_scope.sql", import.meta.url), "utf8");
+    const slugMigration = await readFile(new URL("../../../infra/postgres/migrations/004_project_org_slug_unique.sql", import.meta.url), "utf8");
+    await pool.query(identityMigration);
+    await pool.query("INSERT INTO projects (name, slug) VALUES ($1, $2)", ["Legacy Project", "legacy-project"]);
+    await pool.query(tenantMigration);
+    await pool.query(slugMigration);
+    await pool.query(identityMigration);
+    await pool.query(tenantMigration);
+    await pool.query(slugMigration);
 
     const setupPayload = {
       bootstrapToken: process.env.DX_BOOTSTRAP_TOKEN,
@@ -68,6 +75,10 @@ test("identity onboarding, sessions, CSRF and organization isolation", { skip: !
     });
     assert.equal(currentOwner.statusCode, 200);
     assert.equal(currentOwner.json().data.role, "owner");
+    const legacyProjects = await app.inject({
+      method: "GET", url: "/api/projects", headers: { cookie: ownerCookieHeader }
+    });
+    assert.deepEqual(legacyProjects.json().data, []);
 
     const missingCsrf = await app.inject({
       method: "POST", url: "/api/projects", headers: { cookie: ownerCookieHeader },

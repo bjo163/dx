@@ -36,7 +36,7 @@ export async function createSession(pool, reply, userId) {
     "INSERT INTO user_sessions (user_id, token_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4)",
     [userId, hashToken(sessionToken), hashToken(csrfToken), expiresAt]
   );
-  const secure = process.env.NODE_ENV === "production";
+  const secure = process.env.COOKIE_SECURE === "true" || (process.env.COOKIE_SECURE !== "false" && process.env.NODE_ENV === "production");
   reply.setCookie(SESSION_COOKIE, sessionToken, {
     httpOnly: true, secure, sameSite: "lax", path: "/", expires: expiresAt
   });

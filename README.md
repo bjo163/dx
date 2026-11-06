@@ -43,7 +43,8 @@ pnpm dev
 - [x] GitHub Actions lint, API test, workspace build and Compose validation
 - [x] PostgreSQL identity and tenant-scope migrations
 - [ ] PostgreSQL integration tests for bootstrap concurrency, session lifecycle and cross-tenant denial
-- [ ] Explicit origin checks, full security-header/CSP policy and password reset/invitations
+- [x] Same-origin mutation guard and baseline cockpit security headers
+- [ ] HSTS at TLS proxy, password reset and invitations
 - [ ] Git provider integration and build queue
 - [ ] Isolated deployment runner and runtime adapter
 - [ ] Logs, domains, TLS automation, backups and observability

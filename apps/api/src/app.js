@@ -16,9 +16,6 @@ export async function createApp({ pool = null, logger = true, closePool = false 
   await app.register(cookie);
   await app.register(rateLimit, { global: false });
 
-await app.register(cors, { origin: process.env.NODE_ENV === "production" ? false : true });
-await app.register(cookie);
-await app.register(rateLimit, { global: false });
 
 app.get("/health", async () => ({ status: "ok", service: "dx-api" }));
 

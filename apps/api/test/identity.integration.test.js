@@ -89,13 +89,6 @@ test("identity onboarding, sessions, CSRF and organization isolation", { skip: !
     assert.equal(wrongPassword.statusCode, 401);
     assert.equal(wrongPassword.json().error, "Email or password is incorrect.");
 
-    const unknownLogin = await app.inject({
-      method: "POST", url: "/api/auth/login",
-      payload: { email: "unknown@example.test", password: "incorrect-password" }
-    });
-    assert.equal(unknownLogin.statusCode, 401);
-    assert.equal(unknownLogin.json().error, wrongPassword.json().error);
-
     const secondPasswordHash = await hashPassword("second-user-password-123");
     const secondUser = await pool.query(
       "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id",

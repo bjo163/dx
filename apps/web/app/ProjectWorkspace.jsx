@@ -35,7 +35,10 @@ export default function ProjectWorkspace({ initialProjects, initialError }) {
     try {
       const response = await fetch("/api/projects", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-csrf-token": decodeURIComponent(document.cookie.split("; ").find(item => item.startsWith("dx_csrf="))?.split("=").slice(1).join("=") || "")
+        },
         body: JSON.stringify(form)
       });
       const body = await response.json();

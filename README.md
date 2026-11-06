@@ -33,7 +33,9 @@ pnpm dev
 ## Current scope
 - [x] Monorepo, Compose stack and service boundaries
 - [x] Next.js cockpit shell
-- [x] Fastify health/readiness and project CRUD API\n- [x] Project onboarding cockpit with same-origin API proxy\n- [x] GitHub Actions workspace and Compose validation
+- [x] Fastify health/readiness and project CRUD API
+- [x] Project onboarding cockpit with same-origin API proxy
+- [x] GitHub Actions workspace and Compose validation
 - [x] PostgreSQL schema bootstrap
 - [ ] Authentication, organizations and RBAC
 - [ ] Git provider integration and build queue

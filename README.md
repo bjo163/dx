@@ -2,10 +2,10 @@
 
 A self-hostable, Node.js-first deployment control plane: a small, understandable alternative to Coolify, built around a Next.js cockpit and Fastify API.
 
-> Status: bootstrap foundation. The dashboard and API run locally. Build/deploy execution is intentionally not enabled until isolated runners, authentication, secrets handling and authorization are implemented.
+> Status: private bootstrap platform. First-owner onboarding, Argon2id login, secure sessions and organization-scoped project registry are implemented. Git provider integration and isolated build/deploy execution are not yet enabled. Keep the service behind private network or access-controlled HTTPS.
 
 ## Stack
-- Next.js App Router cockpit
+- Next.js App Router cockpit with first-run onboarding and login
 - Fastify control-plane API (ESM JavaScript)
 - PostgreSQL durable state
 - Redis queue foundation
@@ -16,13 +16,15 @@ Requirements: Docker Engine + Docker Compose plugin.
 
 ```bash
 cp .env.example .env
+# Generate a unique value with: openssl rand -hex 32
+# Set it as DX_BOOTSTRAP_TOKEN in .env before first boot.
 docker compose up --build
 ```
 
-Open http://localhost:3000 (cockpit), http://localhost:4000/health (API health), and http://localhost:4000/ready (database readiness).
+Open http://localhost:3000. On first boot, initialize the owner account and organization using the bootstrap secret. After initialization, the cockpit requires login. API health is available at http://localhost:4000/health and database readiness at http://localhost:4000/ready.
 
 ## VPS deployment
-Follow [the VPS deployment and troubleshooting guide](docs/deployment-vps.md). Compose binds published ports to loopback by default. Direct-IP access requires an explicit temporary `WEB_BIND=0.0.0.0` override and firewall restriction. Do not expose the unauthenticated bootstrap publicly.
+Follow [the VPS deployment and troubleshooting guide](docs/deployment-vps.md). Compose binds published ports to loopback by default. Do not expose the unauthenticated API, database or Redis. Use HTTPS and a private/access-controlled reverse proxy for the cockpit.
 
 ## Local development
 Node.js 22+ and pnpm 9+:
@@ -35,17 +37,18 @@ pnpm dev
 
 ## Current scope
 - [x] Monorepo, Compose stack and service boundaries
-- [x] Next.js cockpit shell
-- [x] Fastify health/readiness and project CRUD API
-- [x] Project onboarding cockpit with same-origin API proxy
-- [x] GitHub Actions lint, API test, build and Compose validation
-- [x] PostgreSQL schema bootstrap
-- [ ] Authentication, organizations and RBAC
+- [x] Next.js cockpit shell and first-run owner onboarding
+- [x] Argon2id login, opaque sessions, logout and CSRF-protected mutations
+- [x] Organization-scoped project list/create and role check for project creation
+- [x] GitHub Actions lint, API test, workspace build and Compose validation
+- [x] PostgreSQL identity and tenant-scope migrations
+- [ ] PostgreSQL integration tests for bootstrap concurrency, session lifecycle and cross-tenant denial
+- [ ] Explicit origin checks, full security-header/CSP policy and password reset/invitations
 - [ ] Git provider integration and build queue
 - [ ] Isolated deployment runner and runtime adapter
-- [ ] Logs, domains, TLS, backups and observability
+- [ ] Logs, domains, TLS automation, backups and observability
 
-See [architecture](docs/architecture.md), [roadmap](docs/roadmap.md), and [security baseline](docs/security.md).
+See [architecture](docs/architecture.md), [roadmap](docs/roadmap.md), [execution plan](.plan/README.md), [VPS deployment](docs/deployment-vps.md), and [security baseline](docs/security.md).
 
 ## Security boundary
-The API is a control plane, not a privileged Docker socket proxy. Never mount the Docker socket into the public web/API containers or execute repository-provided commands in the API process. Build and deployment jobs must run in isolated workers with resource limits, scoped credentials, audit events and guaranteed cleanup. Do not expose this bootstrap publicly before authentication and authorization exist.
+The API is a control plane, not a privileged Docker socket proxy. Never mount the Docker socket into the public web/API containers or execute repository-provided commands in the API process. Build and deployment jobs must run in isolated workers with resource limits, scoped credentials, audit events and guaranteed cleanup. This bootstrap is not yet production-ready for unrestricted public multi-tenant use.

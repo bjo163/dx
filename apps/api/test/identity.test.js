@@ -11,6 +11,10 @@ test("passwords are stored as Argon2id hashes and verified", async () => {
   assert.equal(await verifyPassword(hash, "incorrect password"), false);
 });
 
+test("missing account passwords still use a dummy hash path", async () => {
+  assert.equal(await verifyPassword(undefined, "not-the-password"), false);
+});
+
 test("opaque session token hashes are stable SHA-256 hex digests", () => {
   const token = "random-session-token";
   const digest = hashToken(token);

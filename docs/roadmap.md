@@ -7,14 +7,14 @@ Tasks are bounded so autonomous agents can implement them without product clarif
 - [x] Next.js cockpit shell with API status.
 - [x] Fastify health/readiness and project CRUD endpoints.
 - [x] PostgreSQL initial schema.
-- [ ] Add CI and verify clean Docker build/smoke test.
+- [x] Add GitHub Actions CI for workspace lint/build and Compose validation.\n- [ ] Run CI and verify clean Docker image build/smoke test.
 
 ## M1 — Identity and workspace
 - [ ] Add users, organizations, memberships and sessions.
 - [ ] Implement secure sessions and password hashing.
 - [ ] Add organization-scoped authorization to every project route.
 - [ ] Add audit events for mutations.
-- [ ] Build project onboarding/list UI against the API.
+- [x] Build project onboarding/list UI against the API (same-origin Next.js proxy, create form, live registry, empty/error states).
 
 ## M2 — Git and build orchestration
 - [ ] GitHub App integration with least-privilege permissions.

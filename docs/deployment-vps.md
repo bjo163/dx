@@ -1,6 +1,6 @@
 # VPS deployment and troubleshooting
 
-DX currently ships a bootstrap cockpit and project registry. It does **not** yet have login, organization isolation, RBAC or an isolated build runner. Treat it as a private preview, not a production multi-user deployment platform.
+DX is a private self-hosted control plane. First-owner onboarding, login and organization-scoped project registry are implemented. Git provider integration and isolated build/deploy execution are not. Keep the cockpit behind a private network or access-controlled HTTPS reverse proxy.
 
 ## 1. Prepare the host
 
@@ -14,17 +14,19 @@ cd dx
 cp .env.example .env
 ```
 
-Edit `.env`. Set a long random database password and keep the API bound to loopback:
+Edit `.env`:
 
 ```env
+NODE_ENV=production
 POSTGRES_PASSWORD=replace-with-a-long-random-value
+DX_BOOTSTRAP_TOKEN=replace-with-a-unique-random-secret
 WEB_BIND=127.0.0.1
 WEB_PORT=3000
 API_BIND=127.0.0.1
 API_PORT=4000
 ```
 
-Generate a password with `openssl rand -hex 32`. Do not commit `.env`.
+Generate independent secrets with `openssl rand -hex 32`. Never commit `.env` or share the bootstrap token. The bootstrap token is passed only to the API container.
 
 ## 2. Start and verify
 
@@ -36,8 +38,6 @@ docker compose logs --tail=100 web
 docker compose logs --tail=100 api
 ```
 
-Wait until `web`, `api`, `postgres` and `redis` show healthy (or running for services without a healthcheck).
-
 Verify from the VPS:
 
 ```bash
@@ -46,42 +46,27 @@ curl -i http://127.0.0.1:4000/health
 curl -i http://127.0.0.1:4000/ready
 ```
 
-The API port is intentionally not public. The Next.js server proxies project requests to the API over the private Compose network.
+The API port is intentionally not public. The Next.js server proxies browser requests to the API over the private Compose network.
 
-## 3. Database schema updates
+## 3. First-run owner onboarding
 
-Fresh database volumes automatically execute the bootstrap SQL and the identity foundation migration mounted under `/docker-entrypoint-initdb.d`.
+Open the cockpit through your private reverse proxy or SSH tunnel. The first-run screen asks for the bootstrap secret, owner email, password (at least 12 characters), and organization name/slug.
 
-Existing persistent volumes do **not** rerun initialization scripts. After pulling a release that adds a migration, start PostgreSQL and apply the new migration explicitly:
+The first successful request creates the owner, organization and owner membership in one database transaction. A PostgreSQL advisory lock makes bootstrap single-winner; later attempts are rejected. The browser is signed in automatically after successful setup.
 
-```bash
-docker compose up -d postgres
-docker compose exec -T postgres psql -U dx -d dx -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/002-identity.sql
-```
-
-The current identity migration creates users, organizations, memberships, roles and hashed-session storage. It does not create an account, enable login, or protect project endpoints. Keep the service private until the remaining authentication and authorization work is complete. Back up the database before applying future migrations.
-
-
-## 4. First-run owner onboarding
-
-Before starting DX for the first time, create a unique bootstrap secret and place it in the private `.env` file:
+After setup, remove or rotate `DX_BOOTSTRAP_TOKEN` in `.env` and recreate the API:
 
 ```bash
-openssl rand -hex 32
+docker compose up -d --force-recreate api
 ```
 
-Set the output as `DX_BOOTSTRAP_TOKEN`. Never commit or paste this value into chat, logs or screenshots. Compose passes it only to the API container.
+The setup endpoint permanently rejects additional owner creation once a user exists, even if the bootstrap secret remains configured.
 
-After pulling the release:
+## 4. Database schema updates
 
-```bash
-docker compose up -d --build
-docker compose ps
-```
+Fresh database volumes automatically execute `infra/postgres/init.sql` and the ordered migrations mounted under `/docker-entrypoint-initdb.d`.
 
-Open the cockpit through your private reverse proxy or SSH tunnel. The first-run screen asks for the bootstrap secret, owner email, password (at least 12 characters), and organization name/slug. The first successful request creates the owner, organization and owner membership in one database transaction, then signs the browser in. A database advisory lock makes the bootstrap single-winner; later attempts are rejected.
-
-For an existing persistent PostgreSQL volume, apply both new migrations after backing up the database:
+Existing persistent volumes do **not** rerun initialization scripts. Back up the database before applying migrations. After pulling a release that adds migrations:
 
 ```bash
 docker compose up -d postgres
@@ -90,21 +75,17 @@ docker compose exec -T postgres psql -U dx -d dx -v ON_ERROR_STOP=1 -f /docker-e
 docker compose exec -T postgres psql -U dx -d dx -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/004-project-org-slug-unique.sql
 ```
 
-Projects created before organization scoping remain unassigned and are intentionally not shown to the new organization. Do not manually assign them to an organization without verifying their ownership.
-
-After onboarding, retain the bootstrap secret securely for disaster recovery procedures but do not leave it in a broadly readable shell history. Rotate it or remove it from the API environment once first-owner setup is complete; the setup endpoint also permanently rejects further attempts after an account exists.
+Projects created before organization scoping remain unassigned and are intentionally not shown to the first organization. Do not assign them to an organization without verifying ownership.
 
 ## 5. Current authentication boundary
 
-The cockpit requires login after initialization. Project listing and creation require a valid session; project creation and logout also require the CSRF token. Login attempts and first-owner setup are rate-limited. Session cookies are HttpOnly and SameSite=Lax; production cookies are Secure. Keep HTTPS enabled in production. Password reset, invitation flows, organization switching, audit events and a full security-header/CSP policy are not implemented yet.
+The cockpit requires login after initialization. Passwords use Argon2id. Session cookies are HttpOnly and SameSite=Lax; production cookies are Secure. Project listing and creation require a valid session and are scoped to the authenticated organization. Project creation and logout require CSRF validation; browser mutations are checked for same-origin requests. Login and owner bootstrap are rate-limited.
 
-## 6. Temporary direct-IP preview (not production)
+The cockpit sends baseline CSP, frame, MIME, referrer and permissions headers. Configure HSTS at the HTTPS reverse proxy because TLS terminates there. Password reset, invitation flows, organization switching, audit events and PostgreSQL-backed security integration tests remain future work.
 
-For a short-lived test only, change `WEB_BIND` in `.env` to `0.0.0.0`, then recreate the web service:
+## 6. Temporary direct-IP preview (not recommended)
 
-```env
-WEB_BIND=0.0.0.0
-```
+For a short connectivity test only, change `WEB_BIND` to `0.0.0.0` and recreate the web service:
 
 ```bash
 docker compose up -d --force-recreate web
@@ -112,21 +93,20 @@ docker compose ps
 curl -I http://127.0.0.1:3000/
 ```
 
-Allow TCP 3000 in the VPS provider firewall and host firewall only for your own source IP. Then test `http://YOUR_VPS_IP:3000/`. Do not expose port 4000 or the database/Redis ports.
-
-**Important:** the current bootstrap has no authentication. Do not leave port 3000 open to the internet. After the connectivity test, restore `WEB_BIND=127.0.0.1` and recreate the service.
+Allow TCP 3000 in the VPS provider firewall and host firewall only for your own source IP. Test `http://YOUR_VPS_IP:3000/`, complete onboarding, then restore `WEB_BIND=127.0.0.1` and recreate the web service. Do not expose port 4000 or database/Redis ports. Use HTTPS for real credentials; do not submit the bootstrap token or owner password over an untrusted network.
 
 ## 7. Recommended network shape
 
-For a persistent preview, keep both published services on loopback and put a TLS reverse proxy (for example Caddy or Nginx) in front of the web service. Only expose 80/443. This does not replace the missing application authentication; keep the site access-restricted until the identity milestone is complete.
+Keep published services on loopback and put a TLS reverse proxy (for example Caddy or Nginx) in front of the web service. Only expose 80/443. Restrict the proxy by VPN, IP allowlist or an additional access-control layer until the remaining production hardening is complete. Configure HSTS at the TLS termination point.
 
 ## 8. Diagnose common failures
 
 - `connection refused`: check `docker compose ps`, container logs, and whether the web port is bound to `0.0.0.0` or loopback as intended.
-- Browser timeout: check provider firewall/security group and host firewall. A timeout is different from a process refusing a connection.
-- Web container exits: inspect `docker compose logs --tail=200 web`; a Next.js build/start failure will appear there.
+- Browser timeout: check provider firewall/security group and host firewall.
+- Web container exits: inspect `docker compose logs --tail=200 web`.
 - API unavailable in cockpit: inspect API health and logs. Inside Compose, web must use `http://api:4000`, not `localhost:4000`.
 - Database not ready: inspect `docker compose logs --tail=100 postgres` and verify `POSTGRES_PASSWORD` matches the database's initial configuration. Changing the environment password does not rewrite an existing persistent database volume.
+- Setup form returns authorization failed: verify `DX_BOOTSTRAP_TOKEN` in the API environment matches the secret entered in the browser. Never include it in diagnostic output.
 
 ## 9. Useful support bundle
 

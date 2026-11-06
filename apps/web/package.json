@@ -1,0 +1,1 @@
+{"name":"@dx/web","private":true,"type":"module","scripts":{"dev":"next dev -H 0.0.0.0","build":"next build","start":"next start -H 0.0.0.0","lint":"node --check app/page.jsx"},"dependencies":{"next":"^15.1.6","react":"^19.0.0","react-dom":"^19.0.0"}}

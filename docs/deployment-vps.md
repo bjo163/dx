@@ -20,6 +20,7 @@ Edit `.env`:
 NODE_ENV=production
 POSTGRES_PASSWORD=replace-with-a-long-random-value
 DX_BOOTSTRAP_TOKEN=replace-with-a-unique-random-secret
+COOKIE_SECURE=true
 WEB_BIND=127.0.0.1
 WEB_PORT=3000
 API_BIND=127.0.0.1
@@ -93,7 +94,7 @@ docker compose ps
 curl -I http://127.0.0.1:3000/
 ```
 
-Allow TCP 3000 in the VPS provider firewall and host firewall only for your own source IP. Test `http://YOUR_VPS_IP:3000/`, complete onboarding, then restore `WEB_BIND=127.0.0.1` and recreate the web service. Do not expose port 4000 or database/Redis ports. Use HTTPS for real credentials; do not submit the bootstrap token or owner password over an untrusted network.
+Allow TCP 3000 in the VPS provider firewall and host firewall only for your own source IP. Test `http://YOUR_VPS_IP:3000/` for connectivity only, then restore `WEB_BIND=127.0.0.1` and recreate the web service. Do not complete onboarding or submit credentials over plain HTTP. Do not expose port 4000 or database/Redis ports.
 
 ## 7. Recommended network shape
 

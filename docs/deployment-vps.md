@@ -48,7 +48,20 @@ curl -i http://127.0.0.1:4000/ready
 
 The API port is intentionally not public. The Next.js server proxies project requests to the API over the private Compose network.
 
-## 3. Temporary direct-IP preview (not production)
+## 3. Database schema updates
+
+Fresh database volumes automatically execute the bootstrap SQL and the identity foundation migration mounted under `/docker-entrypoint-initdb.d`.
+
+Existing persistent volumes do **not** rerun initialization scripts. After pulling a release that adds a migration, start PostgreSQL and apply the new migration explicitly:
+
+```bash
+docker compose up -d postgres
+docker compose exec -T postgres psql -U dx -d dx -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/002-identity.sql
+```
+
+The current identity migration creates users, organizations, memberships, roles and hashed-session storage. It does not create an account, enable login, or protect project endpoints. Keep the service private until the remaining authentication and authorization work is complete. Back up the database before applying future migrations.
+
+## 4. Temporary direct-IP preview (not production)
 
 For a short-lived test only, change `WEB_BIND` in `.env` to `0.0.0.0`, then recreate the web service:
 
@@ -66,11 +79,11 @@ Allow TCP 3000 in the VPS provider firewall and host firewall only for your own 
 
 **Important:** the current bootstrap has no authentication. Do not leave port 3000 open to the internet. After the connectivity test, restore `WEB_BIND=127.0.0.1` and recreate the service.
 
-## 4. Recommended network shape
+## 5. Recommended network shape
 
 For a persistent preview, keep both published services on loopback and put a TLS reverse proxy (for example Caddy or Nginx) in front of the web service. Only expose 80/443. This does not replace the missing application authentication; keep the site access-restricted until the identity milestone is complete.
 
-## 5. Diagnose common failures
+## 6. Diagnose common failures
 
 - `connection refused`: check `docker compose ps`, container logs, and whether the web port is bound to `0.0.0.0` or loopback as intended.
 - Browser timeout: check provider firewall/security group and host firewall. A timeout is different from a process refusing a connection.
@@ -78,7 +91,7 @@ For a persistent preview, keep both published services on loopback and put a TLS
 - API unavailable in cockpit: inspect API health and logs. Inside Compose, web must use `http://api:4000`, not `localhost:4000`.
 - Database not ready: inspect `docker compose logs --tail=100 postgres` and verify `POSTGRES_PASSWORD` matches the database's initial configuration. Changing the environment password does not rewrite an existing persistent database volume.
 
-## 6. Useful support bundle
+## 7. Useful support bundle
 
 Run these commands and share the output (redact secrets and public IPs if desired):
 

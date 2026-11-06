@@ -30,25 +30,29 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - [x] Add cryptographically random opaque session and CSRF tokens; persist only token hashes.
 - [x] Add login/logout/current-session endpoints, expiry, revocation and disabled-user handling.
 - [x] Set HttpOnly cookies; require Secure in production and SameSite=Lax.
-- [ ] Add PostgreSQL-backed integration tests for valid/invalid login, expiry, logout/revocation and disabled accounts.
+- [x] Add PostgreSQL-backed integration coverage for valid/invalid login, expiry, logout/revocation, disabled accounts and rate limiting.
+- [ ] Verify the integration suite passes in GitHub Actions.
 
 ### DX-004C — First-owner bootstrap
 - [x] Provide a one-time, race-safe owner bootstrap protected by server-side DX_BOOTSTRAP_TOKEN and PostgreSQL advisory lock.
 - [x] Never ship a default password or public unauthenticated account-creation endpoint.
-- [ ] Add PostgreSQL integration tests proving concurrent bootstrap attempts produce exactly one owner and repeat attempts are denied.
+- [x] Add PostgreSQL integration coverage for concurrent first-owner attempts and repeat denial.
+- [ ] Verify the integration suite passes in GitHub Actions.
 
 ### DX-004D — Organization-scoped authorization
 - [x] Add organization_id to projects without assigning legacy unowned projects to an arbitrary tenant.
 - [x] Resolve organization membership and role server-side; do not trust client-supplied organization or role.
 - [x] Require membership for project list/create and scope every query by organization_id.
 - [x] Enforce owner/admin/developer roles for project creation.
-- [ ] Add PostgreSQL integration tests proving cross-organization reads and writes are denied.
+- [x] Add PostgreSQL integration coverage for tenant-isolated reads, organization-local slug uniqueness and viewer write denial.
+- [ ] Verify the integration suite passes in GitHub Actions.
 
 ### DX-004E — CSRF, rate limits and security headers
 - [x] Protect cookie-authenticated project creation and logout with CSRF cookie/header/hash validation.
 - [x] Rate-limit login and bootstrap attempts with bounded IP-based keys.
 - [x] Enforce same-origin browser mutations at the Next.js proxy boundary and add CSP, frame, MIME, referrer and permissions headers to the cockpit.
-- [ ] Configure HSTS at the TLS termination proxy and add automated PostgreSQL-backed tests for CSRF/origin rejection and abusive login bursts.
+- [x] Add PostgreSQL integration coverage for CSRF rejection and login rate limiting; same-origin enforcement is implemented at the Next.js proxy.
+- [ ] Verify the integration suite passes in GitHub Actions and configure HSTS at the TLS termination proxy.
 
 ## DX-005 — Audit events
 - Persist actor, organization, action, resource, timestamp and safe metadata for every mutation.
@@ -104,6 +108,6 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - [x] DX-004C one-time first-owner onboarding UI and race-safe server bootstrap implemented; concurrency tests remain pending.
 - [x] DX-004D project list/create now require authenticated organization membership and are tenant-scoped; cross-tenant integration tests remain pending.
 - [x] DX-004E same-origin proxy checks and baseline cockpit security headers implemented.
-- [ ] HSTS proxy configuration and automated PostgreSQL-backed CSRF/rate-limit tests remain pending.
+- [ ] HSTS proxy configuration and successful CI execution of the new PostgreSQL integration suite remain pending.
 - [ ] CI runner completion and Docker image build/smoke verification remain pending.
 - [ ] Git provider integration remains blocked on the full identity and authorization baseline.

@@ -47,8 +47,8 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 ### DX-004E — CSRF, rate limits and security headers
 - [x] Protect cookie-authenticated project creation and logout with CSRF cookie/header/hash validation.
 - [x] Rate-limit login and bootstrap attempts with bounded IP-based keys.
-- [ ] Add explicit trusted-origin validation, security headers and production CORS allowlist configuration.
-- [ ] Add automated tests proving unsafe cross-origin mutations and abusive login bursts are rejected.
+- [x] Enforce same-origin browser mutations at the Next.js proxy boundary and add CSP, frame, MIME, referrer and permissions headers to the cockpit.
+- [ ] Configure HSTS at the TLS termination proxy and add automated PostgreSQL-backed tests for CSRF/origin rejection and abusive login bursts.
 
 ## DX-005 — Audit events
 - Persist actor, organization, action, resource, timestamp and safe metadata for every mutation.
@@ -103,6 +103,7 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - [x] DX-004B core Argon2id login/logout/session primitives implemented; PostgreSQL integration coverage remains pending.
 - [x] DX-004C one-time first-owner onboarding UI and race-safe server bootstrap implemented; concurrency tests remain pending.
 - [x] DX-004D project list/create now require authenticated organization membership and are tenant-scoped; cross-tenant integration tests remain pending.
-- [ ] DX-004E explicit origin checks, security headers and automated CSRF/rate-limit tests remain pending.
+- [x] DX-004E same-origin proxy checks and baseline cockpit security headers implemented.
+- [ ] HSTS proxy configuration and automated PostgreSQL-backed CSRF/rate-limit tests remain pending.
 - [ ] CI runner completion and Docker image build/smoke verification remain pending.
 - [ ] Git provider integration remains blocked on the full identity and authorization baseline.

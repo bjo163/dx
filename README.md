@@ -24,7 +24,7 @@ docker compose up --build
 Open http://localhost:3000. On first boot, initialize the owner account and organization using the bootstrap secret. After initialization, the cockpit requires login. API health is available at http://localhost:4000/health and database readiness at http://localhost:4000/ready.
 
 ## VPS deployment
-Follow [the VPS deployment and troubleshooting guide](docs/deployment-vps.md). Compose binds published ports to loopback by default. Do not expose the unauthenticated API, database or Redis. Use HTTPS and a private/access-controlled reverse proxy for the cockpit.
+Follow [the VPS deployment and troubleshooting guide](docs/deployment-vps.md). Compose binds published ports to loopback by default. Do not expose the API, database or Redis ports publicly. Use HTTPS and a private/access-controlled reverse proxy for the cockpit.
 
 ## Local development
 Node.js 22+ and pnpm 9+:

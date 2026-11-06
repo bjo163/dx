@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: dx
       POSTGRES_USER: dx
-      POSTGRES_PASSWORD: dx_local_only
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dx_local_only}
     volumes:
       - dx_postgres:/var/lib/postgresql/data
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
@@ -32,10 +32,10 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      DATABASE_URL: postgres://dx:dx_local_only@postgres:5432/dx
+      DATABASE_URL: postgres://dx:${POSTGRES_PASSWORD:-dx_local_only}@postgres:5432/dx
       REDIS_URL: redis://redis:6379
     ports:
-      - "4000:4000"
+      - "${API_BIND:-127.0.0.1}:${API_PORT:-4000}:4000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,7 +52,7 @@ services:
       API_INTERNAL_URL: http://api:4000
       NEXT_PUBLIC_API_URL: http://localhost:4000
     ports:
-      - "3000:3000"
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-3000}:3000"
     depends_on:
       - api
     restart: unless-stopped

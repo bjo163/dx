@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "build": "node --check src/server.js",
-    "lint": "node --check src/server.js",
+    "build": "node --check src/server.js && node --check src/app.js",
+    "lint": "node --check src/server.js && node --check src/app.js && node --check src/identity.js",
     "test": "node --test"
   },
   "dependencies": {

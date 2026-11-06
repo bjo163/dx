@@ -60,3 +60,12 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - One task per PR/commit; tests and docs ship with each behavior change.
 - Do not expose the service publicly until DX-004 and the security baseline are complete.
 - Do not claim deployment execution is available until DX-008 and DX-009 acceptance criteria pass.
+
+
+## Execution status — 2026-11-06
+
+- [x] Project registry onboarding UI: list, create form, API proxy, empty and error states.
+- [x] Project payload validation extracted into a reusable module and covered by Node tests.
+- [x] GitHub Actions CI now runs workspace lint, API tests, workspace build and Docker Compose validation.
+- [ ] CI runner completion and Docker image build/smoke verification remain pending.
+- [ ] Identity/authentication remains the next security-critical milestone before Git provider integration.

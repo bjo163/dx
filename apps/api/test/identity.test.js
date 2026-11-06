@@ -21,7 +21,7 @@ test("opaque session token hashes are stable SHA-256 hex digests", () => {
 
 test("bootstrap authorization requires the configured secret", () => {
   const previous = process.env.DX_BOOTSTRAP_TOKEN;
-  process.env.DX_BOOTSTRAP_TOKEN = "expected-secret";
+  process.env.DX_BOOTSTRAP_TOKEN = "expected-secret-value-that-is-long-enough-32-characters";
   assert.equal(verifyBootstrapToken("expected-secret"), true);
   assert.equal(verifyBootstrapToken("wrong-secret"), false);
   assert.equal(verifyBootstrapToken(""), false);

@@ -5,7 +5,7 @@ import rateLimit from "@fastify/rate-limit";
 import pg from "pg";
 import { validateProjectPayload } from "./project-validation.js";
 import {
-  createSession, clearSessionCookies, getSession, hashPassword,
+  createSession, clearSessionCookies, hashPassword,
   requireAuth, requireCsrf, verifyBootstrapToken, verifyPassword
 } from "./identity.js";
 

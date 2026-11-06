@@ -87,6 +87,7 @@ For an existing persistent PostgreSQL volume, apply both new migrations after ba
 docker compose up -d postgres
 docker compose exec -T postgres psql -U dx -d dx -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/002-identity.sql
 docker compose exec -T postgres psql -U dx -d dx -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/003-project-tenant-scope.sql
+docker compose exec -T postgres psql -U dx -d dx -v ON_ERROR_STOP=1 -f /docker-entrypoint-initdb.d/004-project-org-slug-unique.sql
 ```
 
 Projects created before organization scoping remain unassigned and are intentionally not shown to the new organization. Do not manually assign them to an organization without verifying their ownership.

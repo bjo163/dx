@@ -82,6 +82,20 @@ test("identity onboarding, sessions, CSRF and organization isolation", { skip: !
     });
     assert.equal(ownerProject.statusCode, 201);
 
+    const wrongPassword = await app.inject({
+      method: "POST", url: "/api/auth/login",
+      payload: { email: "owner@example.test", password: "incorrect-password" }
+    });
+    assert.equal(wrongPassword.statusCode, 401);
+    assert.equal(wrongPassword.json().error, "Email or password is incorrect.");
+
+    const unknownLogin = await app.inject({
+      method: "POST", url: "/api/auth/login",
+      payload: { email: "unknown@example.test", password: "incorrect-password" }
+    });
+    assert.equal(unknownLogin.statusCode, 401);
+    assert.equal(unknownLogin.json().error, wrongPassword.json().error);
+
     const secondPasswordHash = await hashPassword("second-user-password-123");
     const secondUser = await pool.query(
       "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id",
@@ -95,6 +109,18 @@ test("identity onboarding, sessions, CSRF and organization isolation", { skip: !
       "INSERT INTO organization_memberships (organization_id, user_id, role) VALUES ($1, $2, 'viewer')",
       [secondOrg.rows[0].id, secondUser.rows[0].id]
     );
+
+    const disabledHash = await hashPassword("disabled-account-password-123");
+    await pool.query(
+      "INSERT INTO users (email, password_hash, disabled_at) VALUES ($1, $2, NOW())",
+      ["disabled@example.test", disabledHash]
+    );
+    const disabledLogin = await app.inject({
+      method: "POST", url: "/api/auth/login",
+      payload: { email: "disabled@example.test", password: "disabled-account-password-123" }
+    });
+    assert.equal(disabledLogin.statusCode, 401);
+    assert.equal(disabledLogin.json().error, wrongPassword.json().error);
 
     const secondLogin = await app.inject({
       method: "POST", url: "/api/auth/login",

@@ -1,0 +1,1 @@
+{"name":"dx-platform","private":true,"version":"0.1.0","type":"module","packageManager":"pnpm@9.15.5","scripts":{"dev":"pnpm --parallel --filter @dx/api --filter @dx/web dev","build":"pnpm -r build","lint":"pnpm -r lint"}}

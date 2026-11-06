@@ -14,7 +14,7 @@ DX is an early self-hosted control-plane bootstrap. Keep it behind a private net
 
 ## Remaining security work
 
-- Add a full security-header policy (CSP, HSTS, frame restrictions, MIME sniffing protection and referrer policy) and explicit trusted-origin checks for state-changing requests.
+- Configure HSTS at the TLS termination proxy and add PostgreSQL-backed integration tests for origin/CSRF enforcement, session lifecycle and bootstrap concurrency.
 - Add integration tests against real PostgreSQL for concurrent first-owner setup, session expiry/revocation, CSRF rejection, login throttling and cross-organization isolation.
 - Add password reset/rotation, invitations, organization switching and session revocation across all devices.
 - Add audit events for identity and project mutations.
@@ -31,6 +31,6 @@ The Compose database password is a local development placeholder and must be cha
 
 ## Current limitations
 
-The first-owner bootstrap token is required only until initial setup succeeds; after that, the endpoint permanently rejects further setup attempts because an account exists. Remove or rotate the bootstrap secret after initialization. Existing projects without an organization ID are intentionally hidden from organization-scoped queries until an explicit ownership-transfer workflow is available.
+The first-owner bootstrap token is required only until initial setup succeeds; after that, the endpoint permanently rejects further setup attempts because an account exists. Remove or rotate the bootstrap secret after initialization. The Next.js proxy enforces same-origin browser mutations and the cockpit sends baseline CSP, frame, MIME, referrer and permissions headers; configure HSTS at the TLS termination proxy. Existing projects without an organization ID are intentionally hidden from organization-scoped queries until an explicit ownership-transfer workflow is available.
 
 The platform is not yet production-ready for public multi-tenant use. Git provider integration and deployment execution remain blocked until the remaining security work and isolated runner acceptance criteria pass.

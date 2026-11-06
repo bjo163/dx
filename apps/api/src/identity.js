@@ -4,6 +4,8 @@ import argon2 from "argon2";
 const SESSION_COOKIE = "dx_session";
 const CSRF_COOKIE = "dx_csrf";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+const PASSWORD_OPTIONS = { type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 };
+let dummyPasswordHash;
 
 export const hashToken = value => createHash("sha256").update(value).digest("hex");
 const safeEqual = (left, right) => {
@@ -13,12 +15,17 @@ const safeEqual = (left, right) => {
 };
 
 export async function hashPassword(password) {
-  return argon2.hash(password, { type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 });
+  return argon2.hash(password, PASSWORD_OPTIONS);
 }
 
 export async function verifyPassword(hash, password) {
-  try { return await argon2.verify(hash, password); }
-  catch { return false; }
+  try {
+    if (!hash) {
+      dummyPasswordHash ||= await argon2.hash(randomBytes(32).toString("base64url"), PASSWORD_OPTIONS);
+      hash = dummyPasswordHash;
+    }
+    return await argon2.verify(hash, password);
+  } catch { return false; }
 }
 
 export async function createSession(pool, reply, userId) {
@@ -91,5 +98,5 @@ export async function requireCsrf(request, reply) {
 
 export function verifyBootstrapToken(provided) {
   const expected = process.env.DX_BOOTSTRAP_TOKEN;
-  return Boolean(expected && provided && safeEqual(provided, expected));
+  return Boolean(expected && expected.length >= 32 && provided && safeEqual(provided, expected));
 }

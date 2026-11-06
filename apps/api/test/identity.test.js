@@ -29,6 +29,7 @@ test("bootstrap authorization requires the configured secret", () => {
   assert.equal(verifyBootstrapToken("expected-secret"), true);
   assert.equal(verifyBootstrapToken("wrong-secret"), false);
   assert.equal(verifyBootstrapToken(""), false);
+  assert.equal(verifyBootstrapToken("too-short"), false);
   if (previous === undefined) delete process.env.DX_BOOTSTRAP_TOKEN;
   else process.env.DX_BOOTSTRAP_TOKEN = previous;
 });

@@ -10,6 +10,7 @@ services:
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
       - ./infra/postgres/migrations/002_identity.sql:/docker-entrypoint-initdb.d/002-identity.sql:ro
       - ./infra/postgres/migrations/003_project_tenant_scope.sql:/docker-entrypoint-initdb.d/003-project-tenant-scope.sql:ro
+      - ./infra/postgres/migrations/004_project_org_slug_unique.sql:/docker-entrypoint-initdb.d/004-project-org-slug-unique.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dx -d dx"]
       interval: 5s

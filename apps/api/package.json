@@ -1,1 +1,17 @@
-{"name":"@dx/api","private":true,"type":"module","scripts":{"dev":"node --watch src/server.js","start":"node src/server.js","build":"node --check src/server.js","lint":"node --check src/server.js"},"dependencies":{"@fastify/cors":"^10.0.2","fastify":"^5.2.1","pg":"^8.13.1"}}
+{
+  "name": "@dx/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "build": "node --check src/server.js",
+    "lint": "node --check src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "fastify": "^5.2.1",
+    "pg": "^8.13.1"
+  }
+}

@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import pg from "pg";
+import { validateProjectPayload } from "./project-validation.js";
 
 const { Pool } = pg;
 const app = Fastify({ logger: true, trustProxy: false });
@@ -24,13 +25,9 @@ app.get("/api/projects", async (_request, reply) => {
 
 app.post("/api/projects", async (request, reply) => {
   if (!pool) return reply.code(503).send({ error: "Database is not configured" });
-  const body = request.body ?? {};
-  const name = typeof body.name === "string" ? body.name.trim() : "";
-  const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
-  const repositoryUrl = typeof body.repositoryUrl === "string" ? body.repositoryUrl.trim() : null;
-  const defaultBranch = typeof body.defaultBranch === "string" && body.defaultBranch.trim() ? body.defaultBranch.trim() : "main";
-  if (!name || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return reply.code(400).send({ error: "Provide a name and valid lowercase slug." });
-  if (repositoryUrl && !/^https:\/\/(github\.com|gitlab\.com)\/[\w.-]+\/[\w.-]+(?:\.git)?$/.test(repositoryUrl)) return reply.code(400).send({ error: "Repository URL must be a GitHub or GitLab HTTPS repository URL." });
+  const validation = validateProjectPayload(request.body);
+  if (validation.error) return reply.code(400).send({ error: validation.error });
+  const { name, slug, repositoryUrl, defaultBranch } = validation.value;
   try {
     const result = await pool.query("INSERT INTO projects (name, slug, repository_url, default_branch) VALUES ($1, $2, $3, $4) RETURNING id, name, slug, repository_url, default_branch, created_at", [name, slug, repositoryUrl, defaultBranch]);
     return reply.code(201).send({ data: result.rows[0] });

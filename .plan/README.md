@@ -54,6 +54,11 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - Add security headers, dependency scanning and threat-model review.
 - Acceptance: documented restore drill and security checklist pass.
 
+## DX-011 — VPS deployment reliability
+- Document first-time VPS deployment, safe bind defaults, temporary direct-IP preview, firewall boundaries and support diagnostics.
+- Add healthchecks for API and web; start web only after API is healthy.
+- Acceptance: `docker compose config` validates, Compose health reports accurately, and docs never instruct operators to expose API/database/Redis ports.
+
 ## Global execution rules
 - Inspect existing code before editing; preserve working behavior.
 - Use JavaScript ESM and Fastify; do not introduce TypeScript, Express or Prisma.
@@ -67,5 +72,6 @@ This plan is autonomous and safe to execute in small, isolated tasks. Do not req
 - [x] Project registry onboarding UI: list, create form, API proxy, empty and error states.
 - [x] Project payload validation extracted into a reusable module and covered by Node tests.
 - [x] GitHub Actions CI now runs workspace lint, API tests, workspace build and Docker Compose validation.
+- [x] VPS deployment guide, safe direct-IP preview procedure and Compose healthchecks.
 - [ ] CI runner completion and Docker image build/smoke verification remain pending.
 - [ ] Identity/authentication remains the next security-critical milestone before Git provider integration.

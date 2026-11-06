@@ -22,4 +22,4 @@ Browser → Next.js same-origin routes → Fastify API → PostgreSQL. Future de
 
 Constraints: JavaScript ESM by default; keep web and API independently deployable; never mount the Docker socket into public web/API containers; never interpolate user input into shell commands; use explicit adapters for Git providers, builders, registries, DNS and runtime targets; persist deployment state transitions.
 
-Authentication and basic tenant-scoped project access are implemented, but the platform is not yet production-ready for public multi-tenant use. Password reset, invitations, organization switching, audit events, full security headers and isolated deployment runners remain future work.
+Authentication and basic tenant-scoped project access are implemented, but the platform is not yet production-ready for public multi-tenant use. Password reset, invitations, organization switching, audit events, HSTS at the TLS termination proxy, PostgreSQL-backed security integration tests and isolated deployment runners remain future work.

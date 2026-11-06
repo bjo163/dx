@@ -7,8 +7,8 @@ Tasks are bounded so autonomous agents can implement them without product clarif
 - [x] Next.js cockpit shell with API status.
 - [x] Fastify health/readiness and project CRUD endpoints.
 - [x] PostgreSQL initial schema.
-- [x] Add GitHub Actions CI for workspace lint/build and Compose validation.
-- [ ] Run CI and verify clean Docker image build/smoke test.
+- [x] Add GitHub Actions CI for workspace lint, API tests, build and Compose validation.
+- [ ] Verify CI completes and run a clean Docker image build/smoke test.
 
 ## M1 — Identity and workspace
 - [ ] Add users, organizations, memberships and sessions.

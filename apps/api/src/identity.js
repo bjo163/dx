@@ -46,7 +46,7 @@ export async function createSession(pool, reply, userId) {
 }
 
 export function clearSessionCookies(reply) {
-  const secure = process.env.NODE_ENV === "production";
+  const secure = process.env.COOKIE_SECURE === "true" || (process.env.COOKIE_SECURE !== "false" && process.env.NODE_ENV === "production");
   for (const name of [SESSION_COOKIE, CSRF_COOKIE]) {
     reply.clearCookie(name, { path: "/", secure, sameSite: "lax" });
   }

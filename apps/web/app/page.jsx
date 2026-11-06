@@ -16,7 +16,8 @@ async function getApiData(path, cookieHeader = "") {
 }
 
 export default async function Home() {
-  const cookieHeader = (await cookies()).toString();
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.getAll().map(({ name, value }) => `${name}=${value}`).join("; ");
   const setup = await getApiData("/api/setup/status");
   if (setup.error) return <IdentityGate mode="unavailable" message={setup.error}/>;
   if (setup.initialized === false) return <IdentityGate mode="setup"/>;

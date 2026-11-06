@@ -92,7 +92,8 @@ app.post("/api/auth/login", {
     [email]
   );
   const user = rows[0];
-  const valid = user && !user.disabled_at && await verifyPassword(user.password_hash, password);
+  const passwordValid = await verifyPassword(user?.password_hash, password.slice(0, 128));
+  const valid = Boolean(user && !user.disabled_at && password.length <= 128 && passwordValid);
   if (!valid) return reply.code(401).send({ error: "Email or password is incorrect." });
   const membership = await pool.query("SELECT 1 FROM organization_memberships WHERE user_id = $1 LIMIT 1", [user.id]);
   if (!membership.rowCount) return reply.code(403).send({ error: "Account has no active organization membership." });
